@@ -1,13 +1,12 @@
 """Unit tests for Kafka producer."""
 
-import json
 import os
 import sys
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "kafka_producer"))
 
-from config import KAFKA_CONFIG, PRODUCER_CONFIG
+from config import KAFKA_CONFIG, PRODUCER_CONFIG  # noqa: E402
 
 
 class TestConfig:

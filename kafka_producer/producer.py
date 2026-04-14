@@ -3,7 +3,11 @@ Kafka Producer for Retail Transaction Events.
 Generates realistic synthetic transactions using Faker, publishes to Kafka.
 Includes edge cases: nulls, duplicates, late arrivals.
 """
-import json, logging, random, time, uuid
+import json
+import logging
+import random
+import time
+import uuid
 from datetime import datetime, timedelta
 from faker import Faker
 from kafka import KafkaProducer
