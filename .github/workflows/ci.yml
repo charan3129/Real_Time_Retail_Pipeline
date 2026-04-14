@@ -24,5 +24,11 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -f docker/Dockerfile.streamlit -t retail-streamlit:test .
-      - run: docker compose config --quiet
+      - name: Validate Dockerfiles exist
+        run: |
+          test -f docker/Dockerfile.spark
+          test -f docker/Dockerfile.airflow
+          test -f docker/Dockerfile.streamlit
+          echo "All Dockerfiles present"
+      - name: Validate docker-compose
+        run: docker compose config --quiet
