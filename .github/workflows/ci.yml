@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "${{ matrix.python-version }}"}
-      - run: pip install pytest flake8 numpy faker kafka-python
+      - run: pip install pytest flake8 numpy faker
       - run: flake8 kafka_producer/ tests/ --max-line-length=120 --ignore=E501,W503,E402
       - run: pytest tests/ -v --tb=short
   validate:

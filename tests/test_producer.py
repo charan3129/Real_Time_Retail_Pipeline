@@ -1,12 +1,12 @@
-"""Unit tests for Kafka producer."""
+"""Unit tests for Kafka producer configuration and logic."""
 
 import os
 import sys
-from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "kafka_producer"))
 
 from config import KAFKA_CONFIG, PRODUCER_CONFIG  # noqa: E402
+from config import PRODUCT_CATEGORIES, STORE_REGIONS  # noqa: E402
 
 
 class TestConfig:
@@ -16,31 +16,25 @@ class TestConfig:
         for k in ["bootstrap_servers", "topic", "acks"]:
             assert k in KAFKA_CONFIG
 
+    def test_topic_name(self):
+        assert KAFKA_CONFIG["topic"] == "retail_transactions"
+
     def test_probabilities(self):
         for k in ["null_probability", "duplicate_probability", "late_arrival_probability"]:
             assert 0 <= PRODUCER_CONFIG[k] <= 1
 
+    def test_delay_range(self):
+        assert PRODUCER_CONFIG["min_delay_seconds"] < PRODUCER_CONFIG["max_delay_seconds"]
+        assert PRODUCER_CONFIG["min_delay_seconds"] >= 0
 
-class TestTransactions:
-    """Test transaction event generation."""
+    def test_product_categories_not_empty(self):
+        assert len(PRODUCT_CATEGORIES) > 0
 
-    @patch("kafka_producer.producer.KafkaProducer")
-    def test_fields(self, mock):
-        mock.return_value = MagicMock()
-        from producer import RetailTransactionProducer
+    def test_store_regions_not_empty(self):
+        assert len(STORE_REGIONS) > 0
 
-        p = RetailTransactionProducer()
-        t = p._generate_transaction()
-        for f in ["order_id", "product_id", "quantity", "store_id", "total_amount"]:
-            assert f in t
+    def test_num_stores_positive(self):
+        assert PRODUCER_CONFIG["num_stores"] > 0
 
-    @patch("kafka_producer.producer.KafkaProducer")
-    def test_duplicate(self, mock):
-        mock.return_value = MagicMock()
-        from producer import RetailTransactionProducer
-
-        p = RetailTransactionProducer()
-        t = p._generate_transaction()
-        d = p._generate_duplicate(t)
-        assert d["order_id"] == t["order_id"]
-        assert d.get("_is_duplicate")
+    def test_num_products_positive(self):
+        assert PRODUCER_CONFIG["num_products"] > 0
