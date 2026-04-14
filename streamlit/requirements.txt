@@ -1,0 +1,1 @@
+streamlit==1.31.0\nsnowflake-connector-python==3.7.0\nplotly==5.18.0\npandas==2.2.0\n

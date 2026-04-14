@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Credentials
+*.pem
+*.key
+*.env
+.env
+.env.*
+secrets.yml
+credentials.yml
+config/pipeline_config.yml
+!config/pipeline_config.yml.template
+
+# Snowflake
+snowsql_config
+.snowsql/
+
+# Airflow
+airflow/logs/
+airflow/airflow.db
+
+# Spark
+spark-warehouse/
+metastore_db/
+derby.log
+
+# Delta Lake
+delta_lake/
+_delta_log/
+
+# Data
+*.parquet
+*.avro
+data/raw/
+data/bronze/
+data/silver/
+data/gold/
+!data/seed/
+
+# Great Expectations
+great_expectations/uncommitted/
+great_expectations/data_docs/
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+dbt_project/profiles.yml
+!dbt_project/profiles.yml.template

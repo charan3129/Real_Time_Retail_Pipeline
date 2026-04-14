@@ -1,0 +1,43 @@
+config_version: 3.0
+datasources:
+  delta_lake:
+    class_name: Datasource
+    execution_engine:
+      class_name: SparkDFExecutionEngine
+    data_connectors:
+      bronze_connector:
+        class_name: RuntimeDataConnector
+        batch_identifiers: [batch_id]
+      silver_connector:
+        class_name: RuntimeDataConnector
+        batch_identifiers: [batch_id]
+      gold_connector:
+        class_name: RuntimeDataConnector
+        batch_identifiers: [batch_id]
+  snowflake_source:
+    class_name: Datasource
+    execution_engine:
+      class_name: SqlAlchemyExecutionEngine
+      connection_string: "snowflake://${SNOWFLAKE_USER}:${SNOWFLAKE_PASSWORD}@${SNOWFLAKE_ACCOUNT}/${SNOWFLAKE_DATABASE}/${SNOWFLAKE_SCHEMA}?warehouse=${SNOWFLAKE_WAREHOUSE}&role=${SNOWFLAKE_ROLE}"
+    data_connectors:
+      snowflake_connector:
+        class_name: InferredAssetSqlDataConnector
+        include_schema_name: true
+plugins_directory: plugins/
+stores:
+  expectations_store:
+    class_name: ExpectationsStore
+    store_backend: {class_name: TupleFilesystemStoreBackend, base_directory: expectations/}
+  validations_store:
+    class_name: ValidationsStore
+    store_backend: {class_name: TupleFilesystemStoreBackend, base_directory: uncommitted/validations/}
+  checkpoint_store:
+    class_name: CheckpointStore
+    store_backend: {class_name: TupleFilesystemStoreBackend, base_directory: checkpoints/}
+expectations_store_name: expectations_store
+validations_store_name: validations_store
+checkpoint_store_name: checkpoint_store
+data_docs_sites:
+  local_site:
+    class_name: SiteBuilder
+    store_backend: {class_name: TupleFilesystemStoreBackend, base_directory: uncommitted/data_docs/}

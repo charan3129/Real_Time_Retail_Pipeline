@@ -1,0 +1,9 @@
+FROM bitnami/spark:3.5.0
+USER root
+COPY spark_streaming/requirements.txt /tmp/req1.txt
+COPY spark_batch/requirements.txt /tmp/req2.txt
+RUN pip install --no-cache-dir -r /tmp/req1.txt && pip install --no-cache-dir -r /tmp/req2.txt
+COPY spark_streaming/ /opt/spark/apps/spark_streaming/
+COPY spark_batch/ /opt/spark/apps/spark_batch/
+WORKDIR /opt/spark/apps
+USER 1001

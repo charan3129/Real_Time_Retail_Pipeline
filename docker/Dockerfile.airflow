@@ -1,0 +1,8 @@
+FROM apache/airflow:2.8.1-python3.11
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
+USER airflow
+RUN pip install --no-cache-dir apache-airflow-providers-apache-spark==4.7.0 \
+    apache-airflow-providers-snowflake==5.3.0 great-expectations==0.18.8 kafka-python==2.0.2
+COPY airflow/dags/ /opt/airflow/dags/
+COPY great_expectations/ /opt/great_expectations/

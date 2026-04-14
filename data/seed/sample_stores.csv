@@ -1,0 +1,11 @@
+store_id,store_name,region,state,city
+STORE-001,RetailMart #1,Northeast,NY,Albany
+STORE-002,RetailMart #2,Southeast,FL,Orlando
+STORE-003,RetailMart #3,Midwest,IL,Springfield
+STORE-004,RetailMart #4,Southwest,TX,Austin
+STORE-005,RetailMart #5,West,CA,Sacramento
+STORE-006,RetailMart #6,Northeast,MA,Worcester
+STORE-007,RetailMart #7,Southeast,GA,Savannah
+STORE-008,RetailMart #8,Midwest,OH,Columbus
+STORE-009,RetailMart #9,Southwest,AZ,Tucson
+STORE-010,RetailMart #10,West,WA,Olympia

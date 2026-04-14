@@ -1,0 +1,15 @@
+name: retail_checkpoint
+config_version: 1.0
+run_name_template: "retail_run_%Y%m%d_%H%M%S"
+action_list:
+  - name: store_validation_result
+    action: {class_name: StoreValidationResultAction}
+  - name: update_data_docs
+    action: {class_name: UpdateDataDocsAction}
+validations:
+  - batch_request: {datasource_name: delta_lake, data_connector_name: bronze_connector, data_asset_name: bronze_transactions}
+    expectation_suite_name: bronze_suite
+  - batch_request: {datasource_name: delta_lake, data_connector_name: silver_connector, data_asset_name: silver_transactions}
+    expectation_suite_name: silver_suite
+  - batch_request: {datasource_name: delta_lake, data_connector_name: gold_connector, data_asset_name: gold_fact_sales}
+    expectation_suite_name: gold_suite

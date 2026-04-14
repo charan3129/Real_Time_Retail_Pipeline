@@ -1,0 +1,80 @@
+version: '3.8'
+x-common-env: &common-env
+  KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  KAFKA_TOPIC: retail_transactions
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: retail-zookeeper
+    environment: {ZOOKEEPER_CLIENT_PORT: 2181, ZOOKEEPER_TICK_TIME: 2000}
+    ports: ["2181:2181"]
+    healthcheck: {test: ["CMD","echo","ruok","|","nc","localhost","2181"], interval: 10s, timeout: 5s, retries: 5}
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: retail-kafka
+    depends_on: {zookeeper: {condition: service_healthy}}
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports: ["9092:9092", "29092:29092"]
+    healthcheck: {test: ["CMD","kafka-broker-api-versions","--bootstrap-server","localhost:9092"], interval: 15s, timeout: 10s, retries: 5}
+  kafka-producer:
+    build: {context: ., dockerfile: docker/Dockerfile.spark}
+    container_name: retail-kafka-producer
+    depends_on: {kafka: {condition: service_healthy}}
+    environment: {<<: *common-env}
+    command: python /opt/spark/apps/spark_streaming/../kafka_producer/producer.py
+    volumes: ["./kafka_producer:/opt/spark/apps/kafka_producer"]
+  spark-master:
+    image: bitnami/spark:3.5.0
+    container_name: retail-spark-master
+    environment: {SPARK_MODE: master}
+    ports: ["8081:8080", "7077:7077", "4040:4040"]
+  spark-worker:
+    image: bitnami/spark:3.5.0
+    container_name: retail-spark-worker
+    depends_on: [spark-master]
+    environment: {SPARK_MODE: worker, SPARK_MASTER_URL: "spark://spark-master:7077", SPARK_WORKER_MEMORY: 2G}
+  spark-streaming:
+    build: {context: ., dockerfile: docker/Dockerfile.spark}
+    container_name: retail-spark-streaming
+    depends_on: [spark-master, kafka]
+    environment:
+      <<: *common-env
+      BRONZE_PATH: /data/delta/bronze/transactions
+      CHECKPOINT_DIR: /data/checkpoints
+    command: spark-submit --master spark://spark-master:7077 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,io.delta:delta-spark_2.12:3.1.0 /opt/spark/apps/spark_streaming/streaming_consumer.py
+    volumes: [delta_data:/data]
+  airflow:
+    build: {context: ., dockerfile: docker/Dockerfile.airflow}
+    container_name: retail-airflow
+    environment:
+      <<: *common-env
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: "sqlite:////opt/airflow/airflow.db"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__WEBSERVER__SECRET_KEY: "change-me-in-production"
+      ALERT_EMAIL: "alerts@example.com"
+      GE_ROOT_DIR: /opt/great_expectations
+      SNOWFLAKE_ACCOUNT: ${SNOWFLAKE_ACCOUNT:-}
+      SNOWFLAKE_USER: ${SNOWFLAKE_USER:-}
+      SNOWFLAKE_PASSWORD: ${SNOWFLAKE_PASSWORD:-}
+    ports: ["8080:8080"]
+    command: bash -c "airflow db init && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com 2>/dev/null || true && airflow webserver --port 8080 & airflow scheduler"
+    volumes: [airflow_logs:/opt/airflow/logs]
+  streamlit:
+    build: {context: ., dockerfile: docker/Dockerfile.streamlit}
+    container_name: retail-streamlit
+    environment:
+      SNOWFLAKE_ACCOUNT: ${SNOWFLAKE_ACCOUNT:-}
+      SNOWFLAKE_USER: ${SNOWFLAKE_USER:-}
+      SNOWFLAKE_PASSWORD: ${SNOWFLAKE_PASSWORD:-}
+    ports: ["8501:8501"]
+volumes:
+  delta_data: {driver: local}
+  airflow_logs: {driver: local}
